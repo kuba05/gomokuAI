@@ -40,9 +40,13 @@ class Game():
     def __init__(self, side = 15):
         self.state = np.full([side, side], 0, dtype=np.short)
         self.side = side
+        self.activePlayer = 1
         
     def getCurrentPosition(self):
         return self.state
+        
+    def getCurrentPositionForAI(self):
+        return self.state * self.activePlayer
         
     def getLegalMoves(self):
         legalMoves = []
@@ -53,7 +57,6 @@ class Game():
     
     def playMove(self, x, y):
         self.state[x][y] = 1
-        self.state *= -1
     
     def outcome(self):
         for shape in WINNING_SHAPES:
