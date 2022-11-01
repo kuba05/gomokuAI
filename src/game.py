@@ -35,6 +35,8 @@ WINNING_SHAPES = [
     )
 ]
 
+class InvalidMove(ValueError):
+    pass
 
 class Game():
     def __init__(self, side = 15):
@@ -56,7 +58,10 @@ class Game():
                     legalMoves.append([i, j])
     
     def playMove(self, x, y):
-        self.state[x][y] = 1
+        if self.state[x][y] != 0:
+            raise InvalidMove("This tile's already full!")
+        self.state[x][y] = self.activePlayer
+        self.activePlayer *= -1
     
     def outcome(self):
         for shape in WINNING_SHAPES:
@@ -74,9 +79,13 @@ if __name__ == "__main__":
     game = Game(side = 5)
     while game.outcome() == 0:
         print(game.state)
-        x = int(input("enter x: "))
-        y = int(input("enter y: "))
-        game.playMove(x, y)
+        try:
+            x = int(input("enter x: "))
+            y = int(input("enter y: "))
+            game.playMove(x, y)
+        except (ValueError, IndexError) as e:
+            print(e)
+            print("Move again!")
         
     print("Game over!")
     print(game.outcome())
