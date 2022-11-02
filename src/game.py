@@ -38,15 +38,45 @@ WINNING_SHAPES = [
 class InvalidMove(ValueError):
     pass
 
-class Game():
+class GomokuHelper():
+    def getAllMoves(self, state):
+        legalMoves = []
+        for i, row in enumerate(state):
+            for j, tile in enumerate(row):
+                if tile == 0:
+                    legalMoves.append([i, j])
+        return legalMoves
+                    
+    def getStateAfterMove(self, state, move):
+        newState = np.copy(state)
+        newState[move[0], move[1]] = 1
+        newState *= -1
+        return newState
+        
+    def getOutcome(self, state):
+        hight, width = state.shape
+        
+        for shape in WINNING_SHAPES:
+            shapeHight = shape.shape[0]
+            shapeWidth = shape.shape[1]
+            
+            for i in range(hight - shapeHight + 1):
+                for j in range(width - shapeWidth + 1):
+                    score = np.sum(np.sum(state[i : i + shapeHight, j : j + shapeWidth] * shape))
+                    if score == 5 or score == -5:
+                        return score // 5
+        return 0
+        
+        
+class GomokuGame():
     """
     Creates gomoku game.
     """
     def __init__(self, side = 15):
         # 1's represent X's, -1's O's
         self.state = np.full([side, side], 0, dtype=np.short)
-        self.side = side
         self.activePlayer = 1
+        self.gomokuHelper = GomokuHelper()
         
     def getCurrentPosition(self):
         """
@@ -56,29 +86,15 @@ class Game():
         1 means X
         -1 means O
         """
-        return self.state
-        
-    def getCurrentPositionForAI(self):
-        """
-        Returns current game position as a 2D numpy array.
-        
-        0 means empty tile
-        1 means tile controlled by the active player
-        -1 means tile controlled by the inactive player
-        """
         return self.state * self.activePlayer
         
     def getLegalMoves(self):
-        legalMoves = []
-        for i, row in enumerate(range(self.side)):
-            for j, tile in enumerate(row):
-                if tile == 0:
-                    legalMoves.append([i, j])
-    
+        self.gomokuHelper.getAllMoves(self.state)
+        
     def playMove(self, x, y):
-        if self.state[x][y] != 0:
-            raise InvalidMove("This tile's already full!")
-        self.state[x][y] = self.activePlayer
+        if self.state[x, y] != 0:
+            raise InvalidMove("Tile is not empty!")
+        self.state = self.gomokuHelper.getStateAfterMove(self.state, (x, y))
         self.activePlayer *= -1
     
     def outcome(self):
@@ -89,31 +105,12 @@ class Game():
         
         If multiple winning combinations are on the board, this function will not work properly.
         """
-        for shape in WINNING_SHAPES:
-            shapeHight = shape.shape[0]
-            shapeWidth = shape.shape[1]
-            
-            for i in range(self.side - shapeHight + 1):
-                for j in range(self.side - shapeWidth + 1):
-                    score = np.sum(np.sum(self.state[i : i + shapeHight, j : j + shapeWidth] * shape))
-                    if score == 5 or score == -5:
-                        return score // 5
-        return 0                    
-    
-    def outcomeForAI(self):
-        """
-        returns 0 if none has won yet
-        returns 1 if the active player has won
-        returns -1 if the inactive player has won
-        
-        If multiple winning combinations are on the board, this function will not work properly.
-        """
-        return self.outcome() * self.activePlayer()
+        return self.gomokuHelper.getOutcome(self.state)
                   
 if __name__ == "__main__":
-    game = Game(side = 5)
+    game = GomokuGame(side = 5)
     while game.outcome() == 0:
-        print(game.state)
+        print(game.getCurrentPosition())
         try:
             x = int(input("enter x: "))
             y = int(input("enter y: "))
