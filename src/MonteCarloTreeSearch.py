@@ -1,6 +1,6 @@
 import math, random
 import numpy as np
-from game import GomokuHelper
+from . import GomokuHelper
 
 class MonteCarloTreeSearchNode():
     @staticmethod
