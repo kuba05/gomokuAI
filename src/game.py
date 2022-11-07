@@ -39,7 +39,7 @@ class InvalidMove(ValueError):
     pass
 
 class GomokuHelper():
-    def getAllMoves(self, state):
+    def getAllMoves(state):
         legalMoves = []
         for i, row in enumerate(state):
             for j, tile in enumerate(row):
@@ -47,13 +47,16 @@ class GomokuHelper():
                     legalMoves.append([i, j])
         return legalMoves
                     
-    def getStateAfterMove(self, state, move):
+    def getStateAfterMove(state, move):
         newState = np.copy(state)
         newState[move[0], move[1]] = 1
         newState *= -1
         return newState
         
-    def getOutcome(self, state):
+    def getOutcome(state):
+        if len(GomokuHelper.getAllMoves(state)) == 0:
+            return 0
+    
         hight, width = state.shape
         
         for shape in WINNING_SHAPES:
@@ -65,7 +68,7 @@ class GomokuHelper():
                     score = np.sum(np.sum(state[i : i + shapeHight, j : j + shapeWidth] * shape))
                     if score == 5 or score == -5:
                         return score // 5
-        return 0
+        return None
         
         
 class GomokuGame():
@@ -76,7 +79,7 @@ class GomokuGame():
         # 1's represent X's, -1's O's
         self.state = np.full([side, side], 0, dtype=np.short)
         self.activePlayer = 1
-        self.gomokuHelper = GomokuHelper()
+        self.gomokuHelper = GomokuHelper
         
     def getCurrentPosition(self):
         """
@@ -105,11 +108,13 @@ class GomokuGame():
         
         If multiple winning combinations are on the board, this function will not work properly.
         """
-        return self.gomokuHelper.getOutcome(self.state)
+        if (outcome := self.gomokuHelper.getOutcome(self.state)) is not None:
+            outcome *= -1
+        return outcome
                   
 if __name__ == "__main__":
-    game = GomokuGame(side = 5)
-    while game.outcome() == 0:
+    game = GomokuGame(side = 3)
+    while game.outcome() == None:
         print(game.getCurrentPosition())
         try:
             x = int(input("enter x: "))
